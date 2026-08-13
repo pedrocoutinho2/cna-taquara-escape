@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>O Sumiço do Dani · CNA Taquara</title>
-<meta name="description" content="O Dani sumiu e deixou pistas em inglês por cinco ambientes do CNA Taquara. Quanto tempo você leva para achar ele?">
+<title>O Sumiço da Dani · CNA Taquara</title>
+<meta name="description" content="A Dani sumiu e deixou pistas em inglês por cinco ambientes do CNA Taquara. Quanto tempo você leva para achar ela?">
 <meta name="theme-color" content="#E6143C">
-<meta property="og:title" content="O Sumiço do Dani · CNA Taquara">
-<meta property="og:description" content="Cinco salas. Cinco enigmas. Ache o Dani antes que o tempo acabe.">
+<meta property="og:title" content="O Sumiço da Dani · CNA Taquara">
+<meta property="og:description" content="Cinco salas. Cinco enigmas. Ache a Dani antes que o tempo acabe.">
 <link rel="icon" href="assets/logo-cna.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -331,9 +331,9 @@ function telaIntro(alerta){
   app.innerHTML=`${marca()}
   <div class="hero">
     <span class="selo">Procura-se</span>
-    <h1>O sumiço do Dani</h1>
-    <p class="sub">Ele deixou pistas em inglês por cinco ambientes da escola.</p>
-    <img class="dani" src="assets/dani.png" alt="Dani, o mascote do inglês do CNA">
+    <h1>O sumiço da Dani</h1>
+    <p class="sub">Ela deixou pistas em inglês por cinco ambientes da escola.</p>
+    <img class="dani" src="assets/dani.png" alt="Dani, a mascote do inglês do CNA">
   </div>
   <p class="lead">Cinco salas, cinco enigmas e um cronômetro rodando. Cada erro custa 5 segundos, cada dica custa 15. No fim você entra no ranking.</p>
   <div class="cartao">
@@ -432,7 +432,7 @@ function telaMapa(){
   const proxima=S.salas.find(s=>!S.feitas[s.slug]);
   app.innerHTML=`${marca()}
   <div class="topo">
-    <div><div class="eyebrow">${esc(S.temporada?S.temporada.nome:'O sumiço do Dani')}</div>
+    <div><div class="eyebrow">${esc(S.temporada?S.temporada.nome:'O sumiço da Dani')}</div>
       <h2>Onde ele passou</h2></div>
     <span class="passo">${feitas} de ${S.salas.length}</span>
   </div>
@@ -679,7 +679,7 @@ function telaFim(){
   const r=S.fim;
   app.innerHTML=`${marca()}
   <div class="eyebrow">Caso encerrado</div>
-  <h2>Você achou o Dani</h2>
+  <h2>Você achou a Dani</h2>
   <div class="placar">${r.pontuacao} pontos</div>
   <div class="stats">
     <div class="stat"><b>${ms2(r.tempo_total_ms)}</b><span>tempo</span></div>
@@ -736,7 +736,7 @@ async function telaRanking(aba){
     }
   }catch(e){ lista.innerHTML='<div class="alerta">Não deu para carregar o ranking agora.</div>'; }
 }
-const vazio=()=>`<div class="instr">Ninguém no pódio ainda. Seja o primeiro a achar o Dani.</div>`;
+const vazio=()=>`<div class="instr">Ninguém no pódio ainda. Seja o primeiro a achar a Dani.</div>`;
 function linha(d,t){
   const eu=S.jogador&&d.apelido===S.jogador.apelido;
   return `<div class="row" data-me="${eu}">
