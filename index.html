@@ -36,6 +36,14 @@ p{margin:0 0 14px}
 .lead{color:var(--gray);font-size:15px}
 .marca{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:24px}
 .marca img{width:118px;height:auto;display:block}
+.marca.compacta{margin-bottom:14px}
+.marca.compacta img{width:82px}
+.marca.compacta .unidade{display:none}
+.na-sala{min-height:calc(100dvh - var(--pad) * 2);display:flex;flex-direction:column;justify-content:center}
+.na-sala .marca{margin-bottom:auto}
+.na-sala .acoes{margin-bottom:auto}
+.na-sala .topo{margin-bottom:10px}
+.na-sala .instr{padding:10px 13px;font-size:14px;margin-bottom:12px}
 .marca .unidade{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--gray);font-weight:600}
 
 button{font-family:inherit;cursor:pointer;border:0;font-size:16px}
@@ -96,8 +104,13 @@ input[aria-invalid=true]{border-color:var(--red);background:var(--pastelRed)}
 .instr{background:var(--pastelBlue);border-left:4px solid var(--blue);border-radius:8px;
   padding:12px 14px;font-size:14.5px;margin-bottom:16px;transition:border-color .2s}
 .instr.ok{background:#E8F6EE;border-left-color:var(--ok)}
-.cena{position:relative;width:100%;aspect-ratio:4/3;border-radius:var(--r);overflow:hidden;
-  background:var(--surface);border:1px solid var(--line);touch-action:manipulation;user-select:none}
+.cena{position:relative;width:calc(100% + var(--pad) * 2);margin-left:calc(var(--pad) * -1);
+  aspect-ratio:4/3;max-height:68vh;overflow:hidden;background:var(--surface);
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  touch-action:manipulation;user-select:none}
+@media (min-width:660px){
+  .cena{width:100%;margin-left:0;border:1px solid var(--line);border-radius:var(--r)}
+}
 .cena img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
 .ph{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:20px;
   background:repeating-linear-gradient(45deg,#F1F1F4 0 14px,#E9E9EE 14px 28px);color:#8B8B93;font-size:13px}
@@ -195,7 +208,7 @@ const ms2=m=>{ if(m==null) return '--:--'; const s=Math.floor(m/1000);
   return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); };
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const digits=s=>String(s||'').replace(/\D/g,'');
-const marca=()=>`<div class="marca">
+const marca=(compacta)=>`<div class="marca${compacta?' compacta':''}">
   <img src="assets/logo-cna.png" alt="CNA Idiomas" width="118" height="52">
   <span class="unidade">Unidade Taquara</span></div>`;
 const rodape=()=>`<div class="rodape">Siga a gente em <a href="${IG}" target="_blank" rel="noopener">@cna.taquara</a>
@@ -328,6 +341,7 @@ function vibra(ms){ if(navigator.vibrate) try{ navigator.vibrate(ms); }catch(e){
 
 /* ============ INTRO ============ */
 function telaIntro(alerta){
+  app.classList.remove('na-sala');
   app.innerHTML=`${marca()}
   <div class="hero">
     <span class="selo">Procura-se</span>
@@ -428,6 +442,7 @@ async function carregaSalas(){
 
 /* ============ MAPA ============ */
 function telaMapa(){
+  app.classList.remove('na-sala');
   const feitas=Object.keys(S.feitas).length;
   const proxima=S.salas.find(s=>!S.feitas[s.slug]);
   app.innerHTML=`${marca()}
@@ -468,7 +483,8 @@ async function abreSala(sala){
   }
   S.sala=sala; S.erros=0; S.dicas=0;
   const v=d.variante, p=v.payload||{}, mec=sala.mecanica||d.sala.mecanica;
-  app.innerHTML=`${marca()}
+  app.classList.add('na-sala');
+  app.innerHTML=`${marca(true)}
   <div class="topo">
     <div><div class="eyebrow">${esc(sala.andar||'')}</div><h2>${esc(sala.nome)}</h2></div>
     <span class="cron" id="cron">00:00</span>
@@ -477,7 +493,7 @@ async function abreSala(sala){
     <br><small>Você tem ${Math.round((sala.teto_ms||240000)/60000)} minutos nesta sala.</small></div>
   <div class="cena" id="cena">
     ${v.foto_url?`<img src="${esc(v.foto_url)}" alt="${esc(sala.nome)}">`
-      :`<div class="ph">foto de ${esc(sala.nome).toLowerCase()}<br><small>entra depois da sessão de fotos</small></div>`}
+      :`<div class="ph"><b>foto de ${esc(sala.nome).toLowerCase()}</b><br><small>entra depois da sessão de fotos</small></div>`}
     <div id="camada"></div>
   </div>
   <div id="extra"></div>
@@ -676,6 +692,7 @@ async function fecharSessao(){
   telaFim();
 }
 function telaFim(){
+  app.classList.remove('na-sala');
   const r=S.fim;
   app.innerHTML=`${marca()}
   <div class="eyebrow">Caso encerrado</div>
@@ -707,6 +724,7 @@ async function novaRodada(){
 
 /* ============ RANKING ============ */
 async function telaRanking(aba){
+  app.classList.remove('na-sala');
   aba=aba||'geral';
   app.innerHTML=`${marca()}
   <div class="topo"><h2>Ranking</h2>
