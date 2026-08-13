@@ -145,6 +145,23 @@ audio{width:100%;margin-top:16px}
 .rodape a{color:var(--blue);font-weight:600;text-decoration:none}
 .rodape a:hover{text-decoration:underline}
 .mote{display:block;margin-top:8px;font-weight:700;color:var(--red);font-size:14px}
+.cron.alerta-tempo{color:var(--red);animation:pulsa .9s ease-in-out infinite}
+@keyframes pulsa{0%,100%{opacity:1}50%{opacity:.45}}
+#confete{position:fixed;inset:0;pointer-events:none;z-index:60}
+.carimbo{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;z-index:5}
+.carimbo span{font-weight:700;font-size:clamp(22px,6.5vw,34px);letter-spacing:.02em;text-transform:uppercase;
+  color:#fff;background:var(--ok);padding:12px 22px;border-radius:12px;transform:rotate(-7deg) scale(.4);
+  opacity:0;box-shadow:0 10px 28px rgba(31,157,85,.4);animation:bate .5s cubic-bezier(.2,1.5,.4,1) forwards}
+.carimbo.falhou span{background:var(--red);box-shadow:0 10px 28px rgba(230,20,60,.4)}
+@keyframes bate{0%{transform:rotate(-7deg) scale(.4);opacity:0}
+  60%{transform:rotate(-7deg) scale(1.12);opacity:1}100%{transform:rotate(-7deg) scale(1);opacity:1}}
+.dani-comemora{position:fixed;right:8px;bottom:-260px;width:min(150px,36vw);z-index:61;pointer-events:none;
+  animation:sobe 2.6s cubic-bezier(.2,.9,.3,1) forwards;
+  filter:drop-shadow(0 12px 24px rgba(26,26,26,.28))}
+@keyframes sobe{0%{bottom:-260px}22%{bottom:-14px}72%{bottom:-14px}100%{bottom:-260px}}
+.resposta{background:#FFF6D9;border-left:4px solid var(--yellow);border-radius:8px;padding:12px 14px;
+  font-size:14.5px;margin-top:14px}
+.resposta b{color:var(--redDark)}
 .hidden{display:none!important}
 .load{display:grid;place-items:center;padding:52px 0;color:var(--gray);font-size:14px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
@@ -172,7 +189,7 @@ async function sel(path){
 }
 
 const app=document.getElementById('app');
-const S={jogador:null,sessao:null,temporada:null,salas:[],feitas:{},sala:null,t0:0,tick:null,erros:0,dicas:0,fim:null};
+const S={jogador:null,sessao:null,temporada:null,salas:[],feitas:{},sala:null,t0:0,tick:null,erros:0,dicas:0,fim:null,limite:0,travada:false};
 const QR=new URLSearchParams(location.search).get('qr');
 const ms2=m=>{ if(m==null) return '--:--'; const s=Math.floor(m/1000);
   return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); };
@@ -253,6 +270,61 @@ function mascaraTel(v){
   if(d.length<=10) return '('+d.slice(0,2)+') '+d.slice(2,6)+'-'+d.slice(6);
   return '('+d.slice(0,2)+') '+d.slice(2,7)+'-'+d.slice(7);
 }
+
+/* ============ ANIMACOES ============ */
+const semMovimento=()=>window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function confete(){
+  if(semMovimento()) return;
+  const c=document.createElement('canvas'); c.id='confete'; document.body.appendChild(c);
+  const ctx=c.getContext('2d'), dpr=Math.min(devicePixelRatio||1,2);
+  const L=()=>{ c.width=innerWidth*dpr; c.height=innerHeight*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); };
+  L();
+  const cores=['#E6143C','#19408B','#FFC800','#A30E2A'];
+  const P=[]; const N=Math.min(120,Math.round(innerWidth/4));
+  for(let i=0;i<N;i++) P.push({
+    x:innerWidth/2+(Math.random()-.5)*innerWidth*.5, y:innerHeight*.42,
+    vx:(Math.random()-.5)*9, vy:-6-Math.random()*9,
+    w:5+Math.random()*6, h:8+Math.random()*8, cor:cores[i%cores.length],
+    rot:Math.random()*6.28, vr:(Math.random()-.5)*.34, vida:1
+  });
+  const t0=performance.now();
+  (function anima(t){
+    const dt=Math.min((t-t0)/1000,4);
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    let vivos=0;
+    for(const p of P){
+      p.vy+=.32; p.x+=p.vx; p.y+=p.vy; p.rot+=p.vr; p.vx*=.99;
+      if(dt>1.6) p.vida-=.016;
+      if(p.vida>0 && p.y<innerHeight+40){
+        vivos++;
+        ctx.save(); ctx.globalAlpha=Math.max(p.vida,0);
+        ctx.translate(p.x,p.y); ctx.rotate(p.rot);
+        ctx.fillStyle=p.cor; ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h); ctx.restore();
+      }
+    }
+    if(vivos) requestAnimationFrame(anima); else c.remove();
+  })(t0);
+}
+
+function carimbo(texto,falhou){
+  const cena=document.getElementById('cena'); if(!cena) return;
+  const d=document.createElement('div');
+  d.className='carimbo'+(falhou?' falhou':'');
+  d.innerHTML=`<span>${esc(texto)}</span>`;
+  cena.appendChild(d);
+  setTimeout(()=>d.remove(),2600);
+}
+
+function daniComemora(){
+  if(semMovimento()) return;
+  const i=document.createElement('img');
+  i.className='dani-comemora'; i.src='assets/dani.png'; i.alt='';
+  document.body.appendChild(i);
+  setTimeout(()=>i.remove(),2700);
+}
+
+function vibra(ms){ if(navigator.vibrate) try{ navigator.vibrate(ms); }catch(e){} }
 
 /* ============ INTRO ============ */
 function telaIntro(alerta){
@@ -376,7 +448,7 @@ function telaMapa(){
     b.className='stop'; b.dataset.state=feita?'feita':atual?'atual':'travada'; b.disabled=!atual;
     b.innerHTML=`<span class="pin">${feita?'✓':i+1}</span>
       <span><span class="nome">${esc(s.nome)}</span><span class="andar">${esc(s.andar||'')}</span></span>
-      <span class="tempo">${feita?ms2(S.feitas[s.slug].tempo_ms):atual?'Jogar':'—'}</span>`;
+      <span class="tempo">${feita?(S.feitas[s.slug].estourou?'0 pts':ms2(S.feitas[s.slug].tempo_ms)):atual?'Jogar':'—'}</span>`;
     if(atual) b.onclick=()=>abreSala(s);
     st.appendChild(b);
   });
@@ -401,7 +473,8 @@ async function abreSala(sala){
     <div><div class="eyebrow">${esc(sala.andar||'')}</div><h2>${esc(sala.nome)}</h2></div>
     <span class="cron" id="cron">00:00</span>
   </div>
-  <div class="instr" id="instr">${esc(p.instrucao||'Encontre a pista.')}</div>
+  <div class="instr" id="instr">${esc(p.instrucao||'Encontre a pista.')}
+    <br><small>Você tem ${Math.round((sala.teto_ms||240000)/60000)} minutos nesta sala.</small></div>
   <div class="cena" id="cena">
     ${v.foto_url?`<img src="${esc(v.foto_url)}" alt="${esc(sala.nome)}">`
       :`<div class="ph">foto de ${esc(sala.nome).toLowerCase()}<br><small>entra depois da sessão de fotos</small></div>`}
@@ -412,19 +485,60 @@ async function abreSala(sala){
     <button class="btn ghost small" id="dica">Pedir uma dica (+15s)</button>
     <button class="btn small hidden" id="prox" style="margin-left:auto">Próxima sala</button>
   </div>`;
-  S.t0=Date.now(); clearInterval(S.tick);
-  S.tick=setInterval(()=>{ const c=document.getElementById('cron'); if(c) c.textContent=ms2(Date.now()-S.t0); },250);
+  S.t0=Date.now(); S.limite=sala.teto_ms||240000; S.travada=false;
+  clearInterval(S.tick);
+  S.tick=setInterval(()=>{
+    const c=document.getElementById('cron'); if(!c) return;
+    const resta=S.limite-(Date.now()-S.t0);
+    c.textContent=ms2(Math.max(resta,0));
+    c.classList.toggle('alerta-tempo',resta<=30000&&resta>0);
+    if(resta<=0){ clearInterval(S.tick); estourouTempo(p); }
+  },250);
   document.getElementById('dica').onclick=()=>{ S.dicas++;
     document.getElementById('instr').textContent=p.dica||'Olhe com atenção para os cantos da cena.'; };
   const motores={objetos_ocultos:mObjetos,arrastar_palavra:mArrastar,erros_diferenca:mDiferencas,
     frase_audio:mFrase,luz_negra:mLuzNegra};
   (motores[mec]||mObjetos)(p,concluiSala);
 }
-function erro(){ S.erros++; const i=document.getElementById('instr');
+async function estourouTempo(p){
+  if(S.travada) return; S.travada=true;
+  document.querySelectorAll('#cena button, #extra button, #extra input').forEach(b=>b.disabled=true);
+  const dica=document.getElementById('dica'); if(dica) dica.disabled=true;
+  const cron=document.getElementById('cron');
+  if(cron){ cron.textContent='00:00'; cron.classList.remove('alerta-tempo'); cron.style.color='var(--red)'; }
+  carimbo('Tempo esgotado',true); vibra(220);
+  let r={pontuacao:0,tempo_ms:S.limite,estourou:true};
+  try{ r=await rpc('escape_sala_estourar',{p_sessao_id:S.sessao,p_sala_slug:S.sala.slug,
+        p_erros:S.erros,p_dicas:S.dicas}); }catch(e){}
+  S.feitas[S.sala.slug]=r;
+  const i=document.getElementById('instr');
+  i.classList.remove('ok');
+  i.style.background='var(--pastelRed)'; i.style.borderLeftColor='var(--red)';
+  i.innerHTML='<b>O tempo acabou nesta sala.</b> Zero ponto aqui, mas a busca continua.';
+  const resp=respostaDe(p);
+  if(resp){ const d=document.createElement('div'); d.className='resposta';
+    d.innerHTML=`A resposta era: <b>${esc(resp)}</b>`;
+    document.getElementById('extra').appendChild(d); }
+  const b=document.getElementById('prox'); b.classList.remove('hidden');
+  const acabou=Object.keys(S.feitas).length>=S.salas.length;
+  b.textContent=acabou?'Ver meu resultado':'Próxima sala';
+  b.onclick=()=>acabou?fecharSessao():telaMapa();
+}
+function respostaDe(p){
+  if(!p) return '';
+  if(p.frase) return p.frase;
+  if(p.senha) return p.senha;
+  if(p.hotspots) return p.hotspots.slice().sort((a,b)=>(a.ordem||0)-(b.ordem||0)).map(h=>h.label).join(' · ');
+  if(p.palavras) return p.palavras.join(' · ');
+  if(p.diffs) return p.diffs.map(d=>d.label).filter(Boolean).join(' · ');
+  return '';
+}
+function erro(){ if(S.travada) return; S.erros++; const i=document.getElementById('instr');
   if(i){ i.style.borderLeftColor='var(--red)'; setTimeout(()=>{i.style.borderLeftColor='';},400); } }
 
 async function concluiSala(){
-  clearInterval(S.tick);
+  if(S.travada) return;
+  S.travada=true; clearInterval(S.tick);
   const dica=document.getElementById('dica'); if(dica) dica.disabled=true;
   try{
     const r=await rpc('escape_sala_concluir',{p_sessao_id:S.sessao,p_sala_slug:S.sala.slug,
@@ -433,6 +547,7 @@ async function concluiSala(){
     const i=document.getElementById('instr'); i.classList.add('ok');
     i.innerHTML=`<b>Pista encontrada.</b> ${ms2(r.tempo_ms)} · ${r.pontuacao} pontos`
       +(r.penalidade_ms?` · ${Math.round(r.penalidade_ms/1000)}s de penalidade`:'');
+    carimbo('Pista encontrada'); confete(); daniComemora(); vibra([30,60,30]);
     const p=document.getElementById('prox'); p.classList.remove('hidden');
     const acabou=Object.keys(S.feitas).length>=S.salas.length;
     p.textContent=acabou?'Ver meu resultado':'Próxima sala';
